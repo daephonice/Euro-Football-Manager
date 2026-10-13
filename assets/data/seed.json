@@ -1,1 +1,50 @@
-
+{
+"leagues": [
+["ENG1","Premier League","England",1,95],["ENG2","Championship","England",2,78],["ENG3","League One","England",3,62],
+["ESP1","La Liga","Spain",1,90],["ESP2","La Liga 2","Spain",2,68],["ESP3","Primera Federación","Spain",3,52],
+["GER1","Bundesliga","Germany",1,88],["GER2","2. Bundesliga","Germany",2,66],["GER3","3. Liga","Germany",3,52],
+["ITA1","Serie A","Italy",1,86],["ITA2","Serie B","Italy",2,62],["ITA3","Serie C","Italy",3,48],
+["FRA1","Ligue 1","France",1,82],["FRA2","Ligue 2","France",2,58],["FRA3","National","France",3,44],
+["POR1","Primeira Liga","Portugal",1,72],["POR2","Liga Portugal 2","Portugal",2,50],["POR3","Liga 3","Portugal",3,40],
+["NED1","Eredivisie","Netherlands",1,70],["NED2","Eerste Divisie","Netherlands",2,48],["NED3","Tweede Divisie","Netherlands",3,38],
+["TUR1","Süper Lig","Turkey",1,66],["TUR2","1. Lig","Turkey",2,46],["TUR3","2. Lig","Turkey",3,36],
+["BEL1","Pro League","Belgium",1,64],["BEL2","Challenger Pro League","Belgium",2,44],
+["SUI1","Super League","Switzerland",1,58],["SUI2","Challenge League","Switzerland",2,42]
+],
+"clubs": [
+["Arsenal","ENG1",90],["Aston Villa","ENG1",76],["Bournemouth","ENG1",66],["Brentford","ENG1",66],["Brighton","ENG1",70],["Burnley","ENG1",58],["Chelsea","ENG1",85],["Crystal Palace","ENG1",68],["Everton","ENG1",66],["Fulham","ENG1",66],["Leeds United","ENG1",62],["Liverpool","ENG1",92],["Manchester City","ENG1",94],["Manchester United","ENG1",84],["Newcastle United","ENG1",80],["Nottingham Forest","ENG1",68],["Sunderland","ENG1",58],["Tottenham Hotspur","ENG1",82],["West Ham United","ENG1",70],["Wolverhampton Wanderers","ENG1",62],
+["Alavés","ESP1",52],["Athletic Club","ESP1",74],["Atlético Madrid","ESP1",86],["Barcelona","ESP1",92],["Celta Vigo","ESP1",62],["Elche","ESP1",48],["Espanyol","ESP1",54],["Getafe","ESP1",56],["Girona","ESP1",62],["Levante","ESP1",48],["Mallorca","ESP1",56],["Osasuna","ESP1",58],["Rayo Vallecano","ESP1",56],["Real Betis","ESP1",72],["Real Madrid","ESP1",95],["Real Oviedo","ESP1",46],["Real Sociedad","ESP1",72],["Sevilla","ESP1",70],["Valencia","ESP1",66],["Villarreal","ESP1",72],
+["Bayern Munich","GER1",92],["Borussia Dortmund","GER1",82],["RB Leipzig","GER1",80],["Bayer Leverkusen","GER1",82],["Eintracht Frankfurt","GER1",70],["VfB Stuttgart","GER1",72],["SC Freiburg","GER1",64],["Borussia Mönchengladbach","GER1",62],["VfL Wolfsburg","GER1",60],["Werder Bremen","GER1",58],["Mainz 05","GER1",56],["Union Berlin","GER1",56],["FC Augsburg","GER1",50],["Hoffenheim","GER1",58],["Heidenheim","GER1",46],["St. Pauli","GER1",48],["FC Köln","GER1",50],["Hamburger SV","GER1",52],
+["Inter","ITA1",88],["Milan","ITA1",82],["Juventus","ITA1",84],["Napoli","ITA1",82],["Atalanta","ITA1",78],["Roma","ITA1",76],["Lazio","ITA1",72],["Fiorentina","ITA1",66],["Bologna","ITA1",66],["Torino","ITA1",56],["Genoa","ITA1",52],["Udinese","ITA1",52],["Cagliari","ITA1",46],["Parma","ITA1",48],["Como","ITA1",58],["Lecce","ITA1",44],["Hellas Verona","ITA1",44],["Sassuolo","ITA1",50],["Pisa","ITA1",44],["Cremonese","ITA1",42],
+["Paris Saint-Germain","FRA1",92],["Marseille","FRA1",74],["Monaco","FRA1",72],["Lyon","FRA1",70],["Lille","FRA1",68],["Nice","FRA1",64],["Lens","FRA1",64],["Rennes","FRA1",64],["Strasbourg","FRA1",58],["Brest","FRA1",54],["Toulouse","FRA1",52],["Nantes","FRA1",48],["Auxerre","FRA1",44],["Angers","FRA1",42],["Le Havre","FRA1",42],["Lorient","FRA1",44],["Paris FC","FRA1",46],["Metz","FRA1",42]
+],
+"players": [
+["Erling Haaland","Manchester City",26,"Norway","ST",91,93],
+["Rodri","Manchester City",30,"Spain","CDM",89,89],
+["Phil Foden","Manchester City",26,"England","CAM",86,87],
+["Gianluigi Donnarumma","Manchester City",27,"Italy","GK",88,89],
+["Mohamed Salah","Liverpool",34,"Egypt","RW",87,87],
+["Virgil van Dijk","Liverpool",35,"Netherlands","CB",86,86],
+["Alisson","Liverpool",34,"Brazil","GK",88,88],
+["Florian Wirtz","Liverpool",23,"Germany","CAM",87,91],
+["Alexander Isak","Liverpool",27,"Sweden","ST",87,88],
+["Bukayo Saka","Arsenal",25,"England","RW",88,90],
+["Declan Rice","Arsenal",27,"England","CM",87,88],
+["William Saliba","Arsenal",25,"France","CB",88,89],
+["Bruno Fernandes","Manchester United",32,"Portugal","CAM",85,85],
+["Cole Palmer","Chelsea",24,"England","CAM",87,90],
+["Kylian Mbappé","Real Madrid",27,"France","ST",92,93],
+["Jude Bellingham","Real Madrid",23,"England","CM",89,93],
+["Vinícius Júnior","Real Madrid",26,"Brazil","LW",90,91],
+["Thibaut Courtois","Real Madrid",34,"Belgium","GK",89,89],
+["Lamine Yamal","Barcelona",19,"Spain","RW",90,96],
+["Pedri","Barcelona",23,"Spain","CM",88,91],
+["Harry Kane","Bayern Munich",33,"England","ST",90,90],
+["Jamal Musiala","Bayern Munich",23,"Germany","CAM",88,92],
+["Lautaro Martínez","Inter",29,"Argentina","ST",88,88],
+["Nicolò Barella","Inter",29,"Italy","CM",86,86],
+["Ousmane Dembélé","Paris Saint-Germain",29,"France","RW",89,89],
+["Vitinha","Paris Saint-Germain",26,"Portugal","CM",87,88],
+["Khvicha Kvaratskhelia","Paris Saint-Germain",25,"Georgia","LW",87,89]
+]
+}
