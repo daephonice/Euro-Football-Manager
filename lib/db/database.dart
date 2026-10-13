@@ -17,7 +17,14 @@ part 'database.g.dart';
   TrainingSessions,
 ])
 class AppDatabase extends _$AppDatabase {
-  AppDatabase([String name = 'career']) : super(driftDatabase(name: name));
+  AppDatabase([String name = 'career'])
+      : super(driftDatabase(
+          name: name,
+          web: DriftWebOptions(
+            sqlite3Wasm: Uri.parse('sqlite3.wasm'),
+            driftWorker: Uri.parse('drift_worker.js'),
+          ),
+        ));
 
   @override
   int get schemaVersion => 1;
