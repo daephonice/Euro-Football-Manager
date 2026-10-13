@@ -1,0 +1,20 @@
+name: euro_manager
+description: Offline European football manager
+publish_to: none
+version: 0.1.0+1
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+dependencies:
+  flutter:
+    sdk: flutter
+  drift: ^2.18.0
+  drift_flutter: ^0.2.0
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  drift_dev: ^2.18.0
+  build_runner: ^2.4.9
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/data/seed.json
