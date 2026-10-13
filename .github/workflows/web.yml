@@ -1,0 +1,39 @@
+name: Deploy Web
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: true
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter create --platforms=web --project-name euro_manager .
+      - run: flutter pub get
+      - run: dart run build_runner build --delete-conflicting-outputs
+      - run: dart compile js -O4 lib/db/drift_worker.dart -o web/drift_worker.js
+      - name: Fetch sqlite3.wasm
+        run: |
+          V=$(awk '/^  sqlite3:$/{f=1} f&&/version:/{gsub(/"/,"",$2);print $2;exit}' pubspec.lock)
+          echo "sqlite3 $V"
+          curl -fL "https://github.com/simolus3/sqlite3.dart/releases/download/sqlite3-$V/sqlite3.wasm" -o web/sqlite3.wasm
+      - run: flutter build web --release --pwa-strategy=none --base-href "/${{ github.event.repository.name }}/"
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web
+      - id: deploy
+        uses: actions/deploy-pages@v4
