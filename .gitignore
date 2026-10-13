@@ -1,0 +1,10 @@
+.dart_tool/
+build/
+android/
+ios/
+test/
+*.g.dart
+.flutter-plugins*
+.packages
+pubspec.lock
+.idea/
