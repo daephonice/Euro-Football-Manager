@@ -19,7 +19,7 @@ jobs:
       - run: flutter create --platforms=android --project-name euro_manager --org com.gad .
       - run: flutter pub get
       - run: dart run build_runner build --delete-conflicting-outputs
-      - run: flutter build apk --release
+      - run: flutter build apk --release --target-platform android-arm64 --build-number=${{ github.run_number }}
       - uses: actions/upload-artifact@v4
         with:
           name: euro-manager-apk
