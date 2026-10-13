@@ -3,6 +3,8 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+env:
+  KS: ${{ secrets.DEBUG_KEYSTORE_B64 }}
 jobs:
   apk:
     runs-on: ubuntu-latest
@@ -16,10 +18,13 @@ jobs:
         with:
           channel: stable
           cache: true
+      - name: Stable signing key
+        if: env.KS != ''
+        run: mkdir -p ~/.android && echo "$KS" | base64 -d > ~/.android/debug.keystore
       - run: flutter create --platforms=android --project-name euro_manager --org com.gad .
       - run: flutter pub get
       - run: dart run build_runner build --delete-conflicting-outputs
-      - run: flutter build apk --release --target-platform android-arm64 --build-number=${{ github.run_number }}
+      - run: flutter build apk --release --target-platform android-arm64 --build-number=${{ github.run_number }} --split-debug-info=build/symbols --obfuscate
       - uses: actions/upload-artifact@v4
         with:
           name: euro-manager-apk
