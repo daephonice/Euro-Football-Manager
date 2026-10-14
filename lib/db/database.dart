@@ -28,7 +28,7 @@ class AppDatabase extends _$AppDatabase {
         ));
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -39,6 +39,11 @@ class AppDatabase extends _$AppDatabase {
             await m.addColumn(careerSaves, careerSaves.verticality);
           }
           if (from < 3) await m.createTable(financeEntries);
+          if (from < 4) {
+            await m.addColumn(careerSaves, careerSaves.trainingFocus);
+            await customStatement(
+                'UPDATE clubs SET training_level = CASE WHEN reputation >= 85 THEN 5 WHEN reputation >= 70 THEN 4 WHEN reputation >= 55 THEN 3 WHEN reputation >= 40 THEN 2 ELSE 1 END');
+          }
         },
         beforeOpen: (_) async => customStatement('PRAGMA foreign_keys = ON'),
       );

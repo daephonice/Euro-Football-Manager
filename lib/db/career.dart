@@ -5,6 +5,7 @@ import '../engine/fixtures.dart';
 import '../engine/match.dart';
 import 'database.dart';
 import 'market.dart';
+import 'training.dart';
 
 class StandingRow {
   final Club club;
@@ -281,6 +282,7 @@ Future<void> finishMatchday(AppDatabase db, LiveMatchday lm) => db.transaction((
               where: (t) => t.id.equals(e.key));
         }
       });
+      await applyTraining(db, lm, upd.keys.toSet());
       await applyMatchdayFinance(db, lm);
       await (db.update(db.seasons)..where((t) => t.id.equals(lm.season.id)))
           .write(SeasonsCompanion(currentDay: Value(lm.day + 1)));

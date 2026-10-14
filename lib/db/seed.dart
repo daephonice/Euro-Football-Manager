@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:drift/drift.dart';
 import 'package:flutter/services.dart' show rootBundle;
+import '../engine/development.dart';
 import '../engine/rating.dart';
 import 'database.dart';
 
@@ -103,7 +104,8 @@ Future<void> seedIfEmpty(AppDatabase db) async {
           name: c[0],
           leagueId: L.id,
           reputation: rep,
-          budget: Value(budget)));
+          budget: Value(budget),
+          trainingLevel: Value(trainingLevelFor(rep))));
 
       final shape = [..._shape];
       for (final p in real[c[0]] ?? <List>[]) {
