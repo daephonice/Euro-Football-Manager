@@ -260,7 +260,7 @@ Future<LiveMatchday?> prepareMatchday(AppDatabase db) async {
 Future<void> finishMatchday(AppDatabase db, LiveMatchday lm) => db.transaction(() async {
       final results = <MatchResultsCompanion>[];
       final upd = <int, (int, int)>{};
-      final rec = min(30, 4 * max(1, lm.day - lm.season.currentDay + 1));
+      final int rec = min<int>(30, 4 * max<int>(1, lm.day - lm.season.currentDay + 1));
       for (final f in lm.fixtures) {
         final sim = lm.sims[f.id]!..playAll();
         final rt = sim.ratings();
