@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'db/database.dart';
 import 'hub.dart';
+import 'finances.dart';
 import 'squad.dart';
 import 'tactics.dart';
+import 'transfers.dart';
 
 class Shell extends StatefulWidget {
   final AppDatabase db;
@@ -19,7 +21,9 @@ class _ShellState extends State<Shell> {
         body: switch (_i) {
           0 => HubScreen(widget.db, key: const ValueKey('hub')),
           1 => SquadScreen(widget.db, key: const ValueKey('squad')),
-          _ => TacticsScreen(widget.db, key: const ValueKey('tactics')),
+          2 => TacticsScreen(widget.db, key: const ValueKey('tactics')),
+          3 => TransfersScreen(widget.db, key: const ValueKey('transfers')),
+          _ => FinancesScreen(widget.db, key: const ValueKey('finances')),
         },
         bottomNavigationBar: NavigationBar(
           selectedIndex: _i,
@@ -28,6 +32,8 @@ class _ShellState extends State<Shell> {
             NavigationDestination(icon: Icon(Icons.home), label: 'Hub'),
             NavigationDestination(icon: Icon(Icons.groups), label: 'Squad'),
             NavigationDestination(icon: Icon(Icons.tune), label: 'Tactics'),
+            NavigationDestination(icon: Icon(Icons.swap_horiz), label: 'Transfers'),
+            NavigationDestination(icon: Icon(Icons.account_balance_wallet), label: 'Finances'),
           ],
         ),
       );

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'db/career.dart';
 import 'db/database.dart';
+import 'db/market.dart';
 import 'engine/rating.dart' show gkAttrs, outfieldAttrs;
+import 'util.dart';
 
 class SquadScreen extends StatefulWidget {
   final AppDatabase db;
@@ -11,11 +13,36 @@ class SquadScreen extends StatefulWidget {
 }
 
 class _SquadState extends State<SquadScreen> {
-  late final Future<List<Player>> _f = loadSquad(widget.db);
+  late Future<List<Player>> _f = loadSquad(widget.db);
 
   static String _label(String k) {
     final s = k.replaceAllMapped(RegExp('[A-Z]'), (m) => ' ${m[0]!.toLowerCase()}');
     return s[0].toUpperCase() + s.substring(1);
+  }
+
+  Future<void> _sell(Player p) async {
+    Navigator.pop(context);
+    final r = await sellOffer(widget.db, p.id);
+    if (!mounted) return;
+    final o = r.offer;
+    if (o == null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(r.error!)));
+      return;
+    }
+    final yes = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Sell ${p.fullName}?'),
+        content: Text('${o.buyer.name} offer ${fmtMoney(o.fee)}.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Decline')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Accept')),
+        ],
+      ),
+    );
+    if (yes != true) return;
+    await executeSale(widget.db, o);
+    if (mounted) setState(() => _f = loadSquad(widget.db));
   }
 
   void _detail(Player p) {
@@ -32,7 +59,7 @@ class _SquadState extends State<SquadScreen> {
           Text('${p.positions.replaceAll(',', '/')} · ${p.nationality} · age ${p.age} · ${p.preferredFoot} foot'),
           const SizedBox(height: 4),
           Text('OVR ${p.overall} · POT ${p.potential} · fitness ${p.fitness} · form ${p.form} · morale ${p.morale}'),
-          Text('Wage £${p.wagePerWeek}/wk · Value £${p.value} · Contract ${p.contractEndYear}'),
+          Text('Wage ${fmtMoney(p.wagePerWeek)}/wk · Value ${fmtMoney(p.value)} · Contract ${p.contractEndYear}'),
           const Divider(),
           for (final k in keys)
             Padding(
@@ -43,6 +70,8 @@ class _SquadState extends State<SquadScreen> {
                 SizedBox(width: 32, child: Text('${a[k]}', textAlign: TextAlign.right)),
               ]),
             ),
+          const SizedBox(height: 12),
+          FilledButton.tonal(onPressed: () => _sell(p), child: const Text('Sell')),
         ]),
       ),
     );
