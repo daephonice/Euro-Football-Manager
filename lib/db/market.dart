@@ -254,9 +254,15 @@ Future<void> applyMatchdayFinance(AppDatabase db, LiveMatchday lm) async {
   final t = _baseWeekly(club.reputation, lg.strength);
   final home = lm.mine != null && lm.mine!.homeClubId == cid;
   final mult = 1 + 0.15 * (club.stadiumLevel - 1);
+  final save = await loadCareer(db);
   final rows = <(String, int, String)>[
     ('wages', -wages, 'Weekly wages'),
-    ('commercial', (0.85 * t).round(), 'Sponsors & merchandise'),
+    ('commercial', (0.45 * t).round(), 'Merchandise'),
+    (
+      'sponsor',
+      (0.4 * t * save.sponsorPct / 100).round(),
+      'Sponsor: ${save.sponsorName.isEmpty ? 'Local partners' : save.sponsorName}'
+    ),
     if (home)
       ('tickets', (0.8 * t * mult).round(), 'Gate receipts vs ${lm.names[lm.mine!.awayClubId]}'),
   ];

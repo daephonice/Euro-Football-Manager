@@ -4,6 +4,8 @@ import 'package:drift/drift.dart';
 import '../engine/fixtures.dart';
 import '../engine/match.dart';
 import 'database.dart';
+import 'competitions.dart';
+import 'facilities.dart';
 import 'market.dart';
 import 'training.dart';
 
@@ -22,7 +24,8 @@ class HubData {
   final List<Fixture> next;
   final League league;
   final List<StandingRow> table;
-  HubData(this.me, this.season, this.clubs, this.next, this.league, this.table);
+  final bool seasonOver;
+  HubData(this.me, this.season, this.clubs, this.next, this.league, this.table, this.seasonOver);
 }
 
 class LiveMatchday {
@@ -81,9 +84,10 @@ Future<void> startCareer(AppDatabase db, int clubId) => db.transaction(() async 
             ..limit(1))
           .get();
       if (has.isEmpty) await generateFixtures(db, save.seasonId);
+      await signSponsor(db, save.seasonId, clubId, null);
     });
 
-Future<void> generateFixtures(AppDatabase db, int seasonId) async {
+Future<void> generateFixtures(AppDatabase db, int seasonId, {int? prev}) async {
   final leagues = await db.select(db.leagues).get();
   final clubs = await db.select(db.clubs).get();
   final r = Random(seasonId);
@@ -106,6 +110,7 @@ Future<void> generateFixtures(AppDatabase db, int seasonId) async {
     }
   }
   await db.batch((b) => b.insertAll(db.fixtures, rows));
+  await createCompetitions(db, seasonId, prev);
 }
 
 Future<HubData> loadHub(AppDatabase db) async {
@@ -165,7 +170,11 @@ Future<HubData> loadHub(AppDatabase db) async {
             : b.gf != a.gf
                 ? b.gf.compareTo(a.gf)
                 : a.club.name.compareTo(b.club.name));
-  return HubData(clubs[me]!, season, clubs, fx, lg, table);
+  final left = await (db.select(db.fixtures)
+        ..where((t) => t.seasonId.equals(season.id) & t.played.equals(false))
+        ..limit(1))
+      .get();
+  return HubData(clubs[me]!, season, clubs, fx, lg, table, left.isEmpty);
 }
 
 SimPlayer toSim(Player p) => SimPlayer(
@@ -251,24 +260,48 @@ Future<LiveMatchday?> prepareMatchday(AppDatabase db) async {
 Future<void> finishMatchday(AppDatabase db, LiveMatchday lm) => db.transaction(() async {
       final results = <MatchResultsCompanion>[];
       final upd = <int, (int, int)>{};
+      final rec = min(30, 4 * max(1, lm.day - lm.season.currentDay + 1));
       for (final f in lm.fixtures) {
         final sim = lm.sims[f.id]!..playAll();
         final rt = sim.ratings();
+        var hg = sim.goals[0], ag = sim.goals[1];
+        int? winner;
+        var note = '';
+        if (f.knockout) {
+          if (hg == ag) {
+            final rr = Random(f.id * 7 + 3);
+            final sh = strengthOf(sim.sides[0], home: false);
+            final sa = strengthOf(sim.sides[1], home: false);
+            final th = sh.att + sh.mid + sh.def, ta = sa.att + sa.mid + sa.def;
+            final homeWins = rr.nextDouble() < (0.5 + 4 * (th - ta) / (th + ta)).clamp(0.3, 0.7);
+            if (rr.nextBool()) {
+              homeWins ? hg++ : ag++;
+              note = 'aet';
+            } else {
+              note = 'pens';
+            }
+            winner = homeWins ? f.homeClubId : f.awayClubId;
+          } else {
+            winner = hg > ag ? f.homeClubId : f.awayClubId;
+          }
+        }
         results.add(MatchResultsCompanion.insert(
           fixtureId: f.id,
-          homeGoals: sim.goals[0],
-          awayGoals: sim.goals[1],
+          homeGoals: hg,
+          awayGoals: ag,
+          winnerClubId: Value(winner),
+          note: Value(note),
           eventsJson: Value(jsonEncode(sim.toJson(rt))),
         ));
         for (final p in sim.participants) {
           final target = (60 + (rt[p.id]! - 6.8) * 30).clamp(0, 100);
           upd[p.id] = (
-            max(40, min(100, p.fitness + 10) - 25),
+            max(40, min(100, p.fitness + rec) - 25),
             (p.form * 0.7 + target * 0.3).round(),
           );
         }
       }
-      await db.customStatement('UPDATE players SET fitness = MIN(100, fitness + 10)');
+      await db.customStatement('UPDATE players SET fitness = MIN(100, fitness + $rec)');
       await db.batch((b) {
         b.insertAll(db.matchResults, results);
         for (final f in lm.fixtures) {
@@ -282,6 +315,7 @@ Future<void> finishMatchday(AppDatabase db, LiveMatchday lm) => db.transaction((
               where: (t) => t.id.equals(e.key));
         }
       });
+      await advanceCompetitions(db, lm.season.id);
       await applyTraining(db, lm, upd.keys.toSet());
       await applyMatchdayFinance(db, lm);
       await (db.update(db.seasons)..where((t) => t.id.equals(lm.season.id)))

@@ -105,7 +105,8 @@ Future<void> seedIfEmpty(AppDatabase db) async {
           leagueId: L.id,
           reputation: rep,
           budget: Value(budget),
-          trainingLevel: Value(trainingLevelFor(rep))));
+          trainingLevel: Value(trainingLevelFor(rep)),
+          stadiumLevel: Value(trainingLevelFor(rep))));
 
       final shape = [..._shape];
       for (final p in real[c[0]] ?? <List>[]) {

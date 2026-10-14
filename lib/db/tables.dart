@@ -76,6 +76,9 @@ class CareerSaves extends Table {
   IntColumn get mentality => integer().withDefault(const Constant(2))();
   IntColumn get verticality => integer().withDefault(const Constant(1))();
   TextColumn get trainingFocus => text().withDefault(const Constant('fitness'))();
+  TextColumn get sponsorName => text().withDefault(const Constant(''))();
+  IntColumn get sponsorPct => integer().withDefault(const Constant(100))();
+  IntColumn get themeMode => integer().withDefault(const Constant(0))();
 }
 
 class Fixtures extends Table {
@@ -87,6 +90,7 @@ class Fixtures extends Table {
   IntColumn get homeClubId => integer().references(Clubs, #id)();
   IntColumn get awayClubId => integer().references(Clubs, #id)();
   BoolColumn get played => boolean().withDefault(const Constant(false))();
+  BoolColumn get knockout => boolean().withDefault(const Constant(false))();
 }
 
 class MatchResults extends Table {
@@ -95,6 +99,8 @@ class MatchResults extends Table {
   IntColumn get homeGoals => integer()();
   IntColumn get awayGoals => integer()();
   TextColumn get eventsJson => text().withDefault(const Constant('[]'))();
+  IntColumn get winnerClubId => integer().nullable()();
+  TextColumn get note => text().withDefault(const Constant(''))();
 }
 
 class Transfers extends Table {
@@ -133,4 +139,22 @@ class FinanceEntries extends Table {
   TextColumn get kind => text()(); // tickets, commercial, wages, transfer_in, transfer_out
   IntColumn get amount => integer()(); // + income, - expense
   TextColumn get note => text().withDefault(const Constant(''))();
+}
+
+class CompEntries extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get seasonId => integer().references(Seasons, #id)();
+  TextColumn get competition => text()();
+  IntColumn get clubId => integer().references(Clubs, #id)();
+  IntColumn get grp => integer().withDefault(const Constant(-1))();
+}
+
+class Awards extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get seasonId => integer().references(Seasons, #id)();
+  TextColumn get category => text()();
+  TextColumn get winner => text()();
+  TextColumn get detail => text().withDefault(const Constant(''))();
+  IntColumn get clubId => integer().nullable()();
+  BoolColumn get team => boolean().withDefault(const Constant(false))();
 }

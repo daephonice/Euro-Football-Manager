@@ -3,6 +3,7 @@ import 'package:drift/drift.dart';
 import '../engine/development.dart';
 import '../engine/rating.dart';
 import 'career.dart';
+import 'facilities.dart';
 import 'database.dart';
 
 const maxFocus = 2;
@@ -131,6 +132,7 @@ Future<void> startNextSeason(AppDatabase db) => db.transaction(() async {
             ..limit(1))
           .get();
       if (left.isNotEmpty) throw StateError('Season not finished');
+      await computeAwards(db, season.id);
       final str = await _strengthByClub(db);
       final r = Random(season.year * 7919);
       final ps = await db.select(db.players).get();
@@ -156,5 +158,7 @@ Future<void> startNextSeason(AppDatabase db) => db.transaction(() async {
       final sid = await db.into(db.seasons).insert(SeasonsCompanion.insert(year: season.year + 1));
       await (db.update(db.careerSaves)..where((t) => t.id.equals(save.id)))
           .write(CareerSavesCompanion(seasonId: Value(sid)));
-      await generateFixtures(db, sid);
+      await generateFixtures(db, sid, prev: season.id);
+      await signSponsor(db, sid, save.clubId!, season.id);
+      await payPrizes(db, sid, season.id, save.clubId!);
     });
