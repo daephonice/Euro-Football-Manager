@@ -5,3 +5,8 @@ String fmtMoney(num v) {
   if (a >= 1e3) return '$s£${(a / 1e3).round()}K';
   return '$s£${a.round()}';
 }
+
+String attrLabel(String k) {
+  final s = k.replaceAllMapped(RegExp('[A-Z]'), (m) => ' ${m[0]!.toLowerCase()}');
+  return s[0].toUpperCase() + s.substring(1);
+}

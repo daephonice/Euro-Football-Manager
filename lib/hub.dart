@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'db/career.dart';
 import 'db/database.dart';
+import 'db/training.dart';
 import 'engine/fixtures.dart';
 import 'match_screen.dart';
 
@@ -27,6 +28,22 @@ class _HubState extends State<HubScreen> {
               MaterialPageRoute(builder: (_) => MatchScreen(widget.db, lm)));
         }
       }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+      }
+    }
+    if (!mounted) return;
+    setState(() {
+      _busy = false;
+      _f = loadHub(widget.db);
+    });
+  }
+
+  Future<void> _next() async {
+    setState(() => _busy = true);
+    try {
+      await startNextSeason(widget.db);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
@@ -82,11 +99,11 @@ class _HubState extends State<HubScreen> {
                   subtitle: first == null
                       ? null
                       : Text('${first.competition} · Round ${first.round} · ${dayLabel(d.season.year, first.day)}'),
-                  trailing: first == null
-                      ? null
-                      : _busy
-                          ? const SizedBox(
-                              width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
+                  trailing: _busy
+                      ? const SizedBox(
+                          width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
+                      : first == null
+                          ? FilledButton(onPressed: _next, child: const Text('Next season'))
                           : FilledButton(onPressed: _play, child: const Text('Play')),
                 ),
               ),

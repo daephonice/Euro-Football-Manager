@@ -15,11 +15,6 @@ class SquadScreen extends StatefulWidget {
 class _SquadState extends State<SquadScreen> {
   late Future<List<Player>> _f = loadSquad(widget.db);
 
-  static String _label(String k) {
-    final s = k.replaceAllMapped(RegExp('[A-Z]'), (m) => ' ${m[0]!.toLowerCase()}');
-    return s[0].toUpperCase() + s.substring(1);
-  }
-
   Future<void> _sell(Player p) async {
     Navigator.pop(context);
     final r = await sellOffer(widget.db, p.id);
@@ -65,7 +60,7 @@ class _SquadState extends State<SquadScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 2),
               child: Row(children: [
-                SizedBox(width: 120, child: Text(_label(k))),
+                SizedBox(width: 120, child: Text(attrLabel(k))),
                 Expanded(child: LinearProgressIndicator(value: a[k]! / 99)),
                 SizedBox(width: 32, child: Text('${a[k]}', textAlign: TextAlign.right)),
               ]),
