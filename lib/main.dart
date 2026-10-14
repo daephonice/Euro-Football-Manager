@@ -1,14 +1,21 @@
 import 'package:flutter/material.dart';
 import 'db/career.dart';
+import 'db/competitions.dart';
 import 'db/database.dart';
 import 'db/seed.dart';
 import 'shell.dart';
+import 'util.dart';
 import 'new_career.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final db = AppDatabase();
   await seedIfEmpty(db);
+  await ensureCompetitions(db);
+  final saves = await db.select(db.careerSaves).get();
+  if (saves.isNotEmpty) {
+    themeNotifier.value = ThemeMode.values[saves.first.themeMode.clamp(0, 2)];
+  }
   runApp(App(db));
 }
 
@@ -17,16 +24,18 @@ class App extends StatelessWidget {
   const App(this.db, {super.key});
 
   @override
-  Widget build(BuildContext context) => MaterialApp(
+  Widget build(BuildContext context) => ValueListenableBuilder<ThemeMode>(
+      valueListenable: themeNotifier,
+      builder: (_, mode, __) => MaterialApp(
         title: 'Euro Manager',
         theme: ThemeData(colorSchemeSeed: Colors.green, useMaterial3: true),
         darkTheme: ThemeData(
             colorSchemeSeed: Colors.green,
             brightness: Brightness.dark,
             useMaterial3: true),
-        themeMode: ThemeMode.system,
+        themeMode: mode,
         home: Root(db),
-      );
+      ));
 }
 
 class Root extends StatefulWidget {

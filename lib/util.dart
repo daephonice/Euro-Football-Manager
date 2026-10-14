@@ -1,3 +1,7 @@
+import 'package:flutter/material.dart';
+
+final themeNotifier = ValueNotifier<ThemeMode>(ThemeMode.system);
+
 String fmtMoney(num v) {
   final a = v.abs();
   final s = v < 0 ? '-' : '';

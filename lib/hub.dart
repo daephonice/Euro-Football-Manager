@@ -3,6 +3,9 @@ import 'db/career.dart';
 import 'db/database.dart';
 import 'db/training.dart';
 import 'engine/fixtures.dart';
+import 'competitions.dart';
+import 'honours.dart';
+import 'settings.dart';
 import 'match_screen.dart';
 
 class HubScreen extends StatefulWidget {
@@ -19,14 +22,14 @@ class _HubState extends State<HubScreen> {
   Future<void> _play() async {
     setState(() => _busy = true);
     try {
-      final lm = await prepareMatchday(widget.db);
-      if (lm != null) {
-        if (lm.mine == null) {
-          await finishMatchday(widget.db, lm);
-        } else if (mounted) {
-          await Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => MatchScreen(widget.db, lm)));
-        }
+      var lm = await prepareMatchday(widget.db);
+      while (lm != null && lm.mine == null) {
+        await finishMatchday(widget.db, lm);
+        lm = await prepareMatchday(widget.db);
+      }
+      if (lm != null && mounted) {
+        await Navigator.of(context)
+            .push(MaterialPageRoute(builder: (_) => MatchScreen(widget.db, lm!)));
       }
     } catch (e) {
       if (mounted) {
@@ -44,6 +47,10 @@ class _HubState extends State<HubScreen> {
     setState(() => _busy = true);
     try {
       await startNextSeason(widget.db);
+      if (mounted) {
+        await Navigator.of(context)
+            .push(MaterialPageRoute(builder: (_) => HonoursScreen(widget.db)));
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
@@ -87,7 +94,18 @@ class _HubState extends State<HubScreen> {
                 ]),
               );
           return Scaffold(
-            appBar: AppBar(title: Text(d.me.name)),
+            appBar: AppBar(title: Text(d.me.name), actions: [
+              IconButton(
+                icon: const Icon(Icons.settings),
+                onPressed: () => Navigator.of(context)
+                    .push(MaterialPageRoute(builder: (_) => SettingsScreen(widget.db))),
+              ),
+              IconButton(
+                icon: const Icon(Icons.emoji_events),
+                onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => CompetitionsScreen(widget.db))),
+              ),
+            ]),
             body: ListView(padding: const EdgeInsets.all(12), children: [
               Text('Season ${d.season.year}/$yy · ${d.league.name}',
                   style: Theme.of(context).textTheme.labelLarge),
@@ -95,7 +113,7 @@ class _HubState extends State<HubScreen> {
               Card(
                 child: ListTile(
                   leading: const Icon(Icons.sports_soccer),
-                  title: Text(first == null ? 'Season complete' : vs(first)),
+                  title: Text(first == null ? (d.seasonOver ? 'Season complete' : 'No fixture scheduled') : vs(first)),
                   subtitle: first == null
                       ? null
                       : Text('${first.competition} · Round ${first.round} · ${dayLabel(d.season.year, first.day)}'),
@@ -103,7 +121,9 @@ class _HubState extends State<HubScreen> {
                       ? const SizedBox(
                           width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
                       : first == null
-                          ? FilledButton(onPressed: _next, child: const Text('Next season'))
+                          ? (d.seasonOver
+                              ? FilledButton(onPressed: _next, child: const Text('Next season'))
+                              : FilledButton(onPressed: _play, child: const Text('Sim ahead')))
                           : FilledButton(onPressed: _play, child: const Text('Play')),
                 ),
               ),
@@ -123,6 +143,7 @@ class _HubState extends State<HubScreen> {
                 ListTile(
                   dense: true,
                   title: Text(vs(f)),
+                  subtitle: Text(f.competition),
                   trailing: Text(dayLabel(d.season.year, f.day)),
                 ),
             ]),

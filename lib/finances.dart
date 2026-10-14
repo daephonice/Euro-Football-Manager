@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'db/database.dart';
 import 'db/market.dart';
 import 'engine/fixtures.dart';
+import 'facilities.dart';
 import 'util.dart';
 
 class FinancesScreen extends StatefulWidget {
@@ -16,7 +17,14 @@ class _FinancesState extends State<FinancesScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: const Text('Finances')),
+        appBar: AppBar(title: const Text('Finances'), actions: [
+          IconButton(
+            icon: const Icon(Icons.apartment),
+            tooltip: 'Facilities & sponsor',
+            onPressed: () => Navigator.of(context)
+                .push(MaterialPageRoute(builder: (_) => FacilitiesScreen(widget.db))),
+          ),
+        ]),
         body: FutureBuilder<FinanceData>(
           future: _f,
           builder: (_, s) {
@@ -25,7 +33,10 @@ class _FinancesState extends State<FinancesScreen> {
             final d = s.data!;
             const rows = [
               ('tickets', 'Gate receipts'),
-              ('commercial', 'Sponsors & merchandise'),
+              ('commercial', 'Merchandise'),
+              ('sponsor', 'Sponsor'),
+              ('prize', 'Prize money'),
+              ('facilities', 'Facilities'),
               ('wages', 'Wages'),
               ('transfer_in', 'Transfers in'),
               ('transfer_out', 'Transfers out'),

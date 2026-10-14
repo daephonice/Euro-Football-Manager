@@ -107,7 +107,7 @@ class _MatchState extends State<MatchScreen> {
   String get _status => sim.minute == 0
       ? 'Kick-off'
       : sim.finished
-          ? 'FT'
+          ? (widget.lm.mine!.knockout && sim.goals[0] == sim.goals[1] ? 'FT · ET/pens next' : 'FT')
           : (sim.minute == 45 && !_running ? 'HT' : "${sim.minute}'");
 
   Widget _events() => ListView(padding: const EdgeInsets.all(12), children: [
