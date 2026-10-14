@@ -23,16 +23,51 @@ class HubData {
   HubData(this.me, this.season, this.clubs, this.next, this.league, this.table);
 }
 
-class MatchReport {
-  final String home, away;
-  final int hg, ag;
-  final List<MatchEvent> events;
-  final List<int> shots, poss;
-  MatchReport(this.home, this.away, this.hg, this.ag, this.events, this.shots, this.poss);
+class LiveMatchday {
+  final Season season;
+  final int day;
+  final List<Fixture> fixtures;
+  final Map<int, MatchSim> sims;
+  final Map<int, String> names;
+  final Fixture? mine;
+  final int mySide;
+  LiveMatchday(this.season, this.day, this.fixtures, this.sims, this.names, this.mine,
+      this.mySide);
+  MatchSim? get mySim => mine == null ? null : sims[mine!.id];
 }
 
 Future<CareerSave> loadCareer(AppDatabase db) =>
     db.select(db.careerSaves).getSingle();
+
+Future<Tactics> loadTactics(AppDatabase db) async {
+  final s = await loadCareer(db);
+  return Tactics(
+      formation: s.formation, mentality: s.mentality, verticality: s.verticality);
+}
+
+Future<void> saveTactics(AppDatabase db, Tactics t) async {
+  final s = await loadCareer(db);
+  await (db.update(db.careerSaves)..where((x) => x.id.equals(s.id))).write(
+      CareerSavesCompanion(
+          formation: Value(t.formation),
+          mentality: Value(t.mentality),
+          verticality: Value(t.verticality)));
+}
+
+const _posOrder = ['GK', 'CB', 'LB', 'RB', 'CDM', 'CM', 'CAM', 'LW', 'RW', 'ST'];
+
+Future<List<Player>> loadSquad(AppDatabase db) async {
+  final save = await loadCareer(db);
+  final l = await (db.select(db.players)..where((t) => t.clubId.equals(save.clubId!)))
+      .get();
+  int k(Player p) {
+    final i = _posOrder.indexOf(p.positions.split(',').first);
+    return i < 0 ? 99 : i;
+  }
+
+  l.sort((a, b) => k(a) != k(b) ? k(a).compareTo(k(b)) : b.overall.compareTo(a.overall));
+  return l;
+}
 
 Future<void> startCareer(AppDatabase db, int clubId) => db.transaction(() async {
       final save = await loadCareer(db);
@@ -163,47 +198,58 @@ SimPlayer toSim(Player p) => SimPlayer(
       p.form,
     );
 
-/// Simulates every unplayed fixture on the next matchday day. Returns the user's match report.
-Future<MatchReport?> playNextMatchday(AppDatabase db) => db.transaction(() async {
-      final save = await loadCareer(db);
-      final season = await (db.select(db.seasons)
-            ..where((t) => t.id.equals(save.seasonId)))
-          .getSingle();
-      final next = await (db.select(db.fixtures)
-            ..where((t) =>
-                t.seasonId.equals(season.id) &
-                t.played.equals(false) &
-                t.day.isBiggerOrEqualValue(season.currentDay))
-            ..orderBy([(t) => OrderingTerm.asc(t.day)])
-            ..limit(1))
-          .getSingleOrNull();
-      if (next == null) return null;
-      final todays = await (db.select(db.fixtures)
-            ..where((t) =>
-                t.seasonId.equals(season.id) &
-                t.played.equals(false) &
-                t.day.equals(next.day)))
-          .get();
-      final ids = <int>{
-        for (final f in todays) ...[f.homeClubId, f.awayClubId]
-      };
-      final players =
-          await (db.select(db.players)..where((t) => t.clubId.isIn(ids))).get();
-      final squads = <int, List<SimPlayer>>{};
-      for (final p in players) {
-        (squads[p.clubId!] ??= []).add(toSim(p));
-      }
-      final names = {for (final c in await db.select(db.clubs).get()) c.id: c.name};
+/// Builds sims for every fixture on the next matchday. Nothing is saved until finishMatchday.
+Future<LiveMatchday?> prepareMatchday(AppDatabase db) async {
+  final save = await loadCareer(db);
+  final season = await (db.select(db.seasons)
+        ..where((t) => t.id.equals(save.seasonId)))
+      .getSingle();
+  final next = await (db.select(db.fixtures)
+        ..where((t) =>
+            t.seasonId.equals(season.id) &
+            t.played.equals(false) &
+            t.day.isBiggerOrEqualValue(season.currentDay))
+        ..orderBy([(t) => OrderingTerm.asc(t.day)])
+        ..limit(1))
+      .getSingleOrNull();
+  if (next == null) return null;
+  final todays = await (db.select(db.fixtures)
+        ..where((t) =>
+            t.seasonId.equals(season.id) &
+            t.played.equals(false) &
+            t.day.equals(next.day)))
+      .get();
+  final ids = <int>{
+    for (final f in todays) ...[f.homeClubId, f.awayClubId]
+  };
+  final players = await (db.select(db.players)..where((t) => t.clubId.isIn(ids))).get();
+  final squads = <int, List<SimPlayer>>{};
+  for (final p in players) {
+    (squads[p.clubId!] ??= []).add(toSim(p));
+  }
+  final names = {for (final c in await db.select(db.clubs).get()) c.id: c.name};
+  final mt = await loadTactics(db);
+  Tactics tac(int id) => id == save.clubId ? mt : defaultTactics(id);
+  Fixture? mine;
+  final sims = <int, MatchSim>{};
+  for (final f in todays) {
+    if (f.homeClubId == save.clubId || f.awayClubId == save.clubId) mine = f;
+    sims[f.id] = MatchSim(
+      Side.pick(f.homeClubId, squads[f.homeClubId] ?? [], tac(f.homeClubId)),
+      Side.pick(f.awayClubId, squads[f.awayClubId] ?? [], tac(f.awayClubId)),
+      Random(f.id * 31 + 17),
+    );
+  }
+  return LiveMatchday(season, next.day, todays, sims, names, mine,
+      mine != null && mine.awayClubId == save.clubId ? 1 : 0);
+}
 
-      MatchReport? report;
+/// Finishes any unfinished sims, then saves results, fitness/form and advances the day.
+Future<void> finishMatchday(AppDatabase db, LiveMatchday lm) => db.transaction(() async {
       final results = <MatchResultsCompanion>[];
       final upd = <int, (int, int)>{};
-      for (final f in todays) {
-        final sim = MatchSim(
-          Side.pick(f.homeClubId, squads[f.homeClubId] ?? [], defaultTactics(f.homeClubId)),
-          Side.pick(f.awayClubId, squads[f.awayClubId] ?? [], defaultTactics(f.awayClubId)),
-          Random(f.id * 31 + 17),
-        )..playAll();
+      for (final f in lm.fixtures) {
+        final sim = lm.sims[f.id]!..playAll();
         final rt = sim.ratings();
         results.add(MatchResultsCompanion.insert(
           fixtureId: f.id,
@@ -218,16 +264,11 @@ Future<MatchReport?> playNextMatchday(AppDatabase db) => db.transaction(() async
             (p.form * 0.7 + target * 0.3).round(),
           );
         }
-        if (f.homeClubId == save.clubId || f.awayClubId == save.clubId) {
-          report = MatchReport(names[f.homeClubId]!, names[f.awayClubId]!,
-              sim.goals[0], sim.goals[1], sim.events, sim.shots, sim.poss);
-        }
       }
-
       await db.customStatement('UPDATE players SET fitness = MIN(100, fitness + 10)');
       await db.batch((b) {
         b.insertAll(db.matchResults, results);
-        for (final f in todays) {
+        for (final f in lm.fixtures) {
           b.update(db.fixtures, FixturesCompanion(played: const Value(true)),
               where: (t) => t.id.equals(f.id));
         }
@@ -238,7 +279,6 @@ Future<MatchReport?> playNextMatchday(AppDatabase db) => db.transaction(() async
               where: (t) => t.id.equals(e.key));
         }
       });
-      await (db.update(db.seasons)..where((t) => t.id.equals(season.id)))
-          .write(SeasonsCompanion(currentDay: Value(next.day + 1)));
-      return report;
+      await (db.update(db.seasons)..where((t) => t.id.equals(lm.season.id)))
+          .write(SeasonsCompanion(currentDay: Value(lm.day + 1)));
     });

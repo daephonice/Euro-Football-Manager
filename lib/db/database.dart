@@ -27,10 +27,17 @@ class AppDatabase extends _$AppDatabase {
         ));
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
+        onUpgrade: (m, from, to) async {
+          if (from < 2) {
+            await m.addColumn(careerSaves, careerSaves.formation);
+            await m.addColumn(careerSaves, careerSaves.mentality);
+            await m.addColumn(careerSaves, careerSaves.verticality);
+          }
+        },
         beforeOpen: (_) async => customStatement('PRAGMA foreign_keys = ON'),
       );
 }

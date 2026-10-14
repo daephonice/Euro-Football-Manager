@@ -72,6 +72,9 @@ class CareerSaves extends Table {
   IntColumn get clubId => integer().nullable().references(Clubs, #id)();
   IntColumn get seasonId => integer().references(Seasons, #id)();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  TextColumn get formation => text().withDefault(const Constant('4-3-3'))();
+  IntColumn get mentality => integer().withDefault(const Constant(2))();
+  IntColumn get verticality => integer().withDefault(const Constant(1))();
 }
 
 class Fixtures extends Table {
