@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'db/career.dart';
 import 'db/database.dart';
 import 'engine/fixtures.dart';
-import 'engine/match.dart' show MatchEvent;
+import 'match_screen.dart';
 
 class HubScreen extends StatefulWidget {
   final AppDatabase db;
@@ -17,9 +17,16 @@ class _HubState extends State<HubScreen> {
 
   Future<void> _play() async {
     setState(() => _busy = true);
-    MatchReport? rep;
     try {
-      rep = await playNextMatchday(widget.db);
+      final lm = await prepareMatchday(widget.db);
+      if (lm != null) {
+        if (lm.mine == null) {
+          await finishMatchday(widget.db, lm);
+        } else if (mounted) {
+          await Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => MatchScreen(widget.db, lm)));
+        }
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
@@ -30,37 +37,6 @@ class _HubState extends State<HubScreen> {
       _busy = false;
       _f = loadHub(widget.db);
     });
-    if (rep != null) {
-      final r = rep;
-      await showDialog(
-        context: context,
-        builder: (_) => AlertDialog(
-          title: Text('${r.home} ${r.hg}–${r.ag} ${r.away}'),
-          content: SingleChildScrollView(
-            child: Text([
-              for (final e in r.events) _line(r, e),
-              '',
-              'Shots ${r.shots[0]}–${r.shots[1]}',
-              'Possession ${r.poss[0]}%–${r.poss[1]}%',
-            ].join('\n')),
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK'))
-          ],
-        ),
-      );
-    }
-  }
-
-  String _line(MatchReport r, MatchEvent e) {
-    final club = e.side == 0 ? r.home : r.away;
-    return switch (e.type) {
-      'goal' => "${e.minute}' ⚽ ${e.name}${e.other != null ? ' (${e.other})' : ''} — $club",
-      'yellow' => "${e.minute}' 🟨 ${e.name} — $club",
-      'red' => "${e.minute}' 🟥 ${e.name} — $club",
-      'injury' => "${e.minute}' 🚑 ${e.name} — $club",
-      _ => "${e.minute}' 🔁 ${e.name} for ${e.other} — $club",
-    };
   }
 
   @override

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'db/career.dart';
 import 'db/database.dart';
 import 'db/seed.dart';
-import 'hub.dart';
+import 'shell.dart';
 import 'new_career.dart';
 
 Future<void> main() async {
@@ -50,7 +50,7 @@ class _RootState extends State<Root> {
           return s.data!.clubId == null
               ? NewCareerScreen(widget.db,
                   onStarted: () => setState(() => _career = loadCareer(widget.db)))
-              : HubScreen(widget.db);
+              : Shell(widget.db);
         },
       );
 }
