@@ -123,3 +123,13 @@ class TrainingSessions extends Table {
   IntColumn get week => integer()();
   TextColumn get focus => text()();
 }
+
+class FinanceEntries extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get seasonId => integer().references(Seasons, #id)();
+  IntColumn get clubId => integer().references(Clubs, #id)();
+  IntColumn get day => integer()();
+  TextColumn get kind => text()(); // tickets, commercial, wages, transfer_in, transfer_out
+  IntColumn get amount => integer()(); // + income, - expense
+  TextColumn get note => text().withDefault(const Constant(''))();
+}

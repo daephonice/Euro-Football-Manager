@@ -15,6 +15,7 @@ part 'database.g.dart';
   Transfers,
   Loans,
   TrainingSessions,
+  FinanceEntries,
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase([String name = 'career'])
@@ -27,7 +28,7 @@ class AppDatabase extends _$AppDatabase {
         ));
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -37,6 +38,7 @@ class AppDatabase extends _$AppDatabase {
             await m.addColumn(careerSaves, careerSaves.mentality);
             await m.addColumn(careerSaves, careerSaves.verticality);
           }
+          if (from < 3) await m.createTable(financeEntries);
         },
         beforeOpen: (_) async => customStatement('PRAGMA foreign_keys = ON'),
       );

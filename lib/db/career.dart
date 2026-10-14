@@ -4,6 +4,7 @@ import 'package:drift/drift.dart';
 import '../engine/fixtures.dart';
 import '../engine/match.dart';
 import 'database.dart';
+import 'market.dart';
 
 class StandingRow {
   final Club club;
@@ -31,8 +32,9 @@ class LiveMatchday {
   final Map<int, String> names;
   final Fixture? mine;
   final int mySide;
+  final int myClubId;
   LiveMatchday(this.season, this.day, this.fixtures, this.sims, this.names, this.mine,
-      this.mySide);
+      this.mySide, this.myClubId);
   MatchSim? get mySim => mine == null ? null : sims[mine!.id];
 }
 
@@ -241,7 +243,7 @@ Future<LiveMatchday?> prepareMatchday(AppDatabase db) async {
     );
   }
   return LiveMatchday(season, next.day, todays, sims, names, mine,
-      mine != null && mine.awayClubId == save.clubId ? 1 : 0);
+      mine != null && mine.awayClubId == save.clubId ? 1 : 0, save.clubId!);
 }
 
 /// Finishes any unfinished sims, then saves results, fitness/form and advances the day.
@@ -279,6 +281,7 @@ Future<void> finishMatchday(AppDatabase db, LiveMatchday lm) => db.transaction((
               where: (t) => t.id.equals(e.key));
         }
       });
+      await applyMatchdayFinance(db, lm);
       await (db.update(db.seasons)..where((t) => t.id.equals(lm.season.id)))
           .write(SeasonsCompanion(currentDay: Value(lm.day + 1)));
     });
