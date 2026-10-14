@@ -28,6 +28,14 @@ const formations = <String, List<String>>{
   '3-4-3': ['GK', 'CB', 'CB', 'CB', 'LB', 'CM', 'CM', 'RB', 'LW', 'ST', 'RW'],
 };
 
+const stylePresets = <String, (int, int)>{
+  'Balanced': (2, 1),
+  'Gegenpress': (3, 2),
+  'Tiki-Taka': (3, 0),
+  'Counter-Attack': (1, 2),
+  'Catenaccio': (1, 0),
+};
+
 Tactics defaultTactics(int clubId) =>
     Tactics(formation: formations.keys.elementAt(clubId % formations.length));
 
@@ -277,26 +285,63 @@ class MatchSim {
     invalidate();
   }
 
-  void _bring(int i, int j, SimPlayer n, String outName) {
+  void _bring(int i, int j, SimPlayer n, String outName, {bool free = false}) {
     final s = sides[i];
+    final out = s.xi[j];
     s.xi[j] = n;
-    s.subsUsed++;
+    if (free) {
+      _who.remove(out.id);
+      _line.remove(out.id);
+      _side.remove(out.id);
+      s.bench.add(out);
+    } else {
+      s.subsUsed++;
+    }
     _who[n.id] = n;
     _line[n.id] = lineOf(s.slots[j]);
     _side[n.id] = i;
-    events.add(MatchEvent(minute, 'sub', i, n.id, n.name, outName));
+    if (!free) events.add(MatchEvent(minute, 'sub', i, n.id, n.name, outName));
   }
 
   bool substitute(int i, int outId, int inId) {
     final s = sides[i];
-    if (s.subsUsed >= 5) return false;
+    final free = minute == 0;
+    if (!free && s.subsUsed >= 5) return false;
     final j = s.xi.indexWhere((p) => p.id == outId);
     final k = s.bench.indexWhere((p) => p.id == inId);
     if (j < 0 || k < 0) return false;
     final out = s.xi[j];
-    _bring(i, j, s.bench.removeAt(k), out.name);
+    _bring(i, j, s.bench.removeAt(k), out.name, free: free);
     invalidate();
     return true;
+  }
+
+  void setFormation(int i, String f) {
+    final s = sides[i];
+    final want = formations[f];
+    if (want == null || f == s.tactics.formation) return;
+    final order = [...want]
+      ..sort((a, b) => (a == 'GK' ? 0 : 1).compareTo(b == 'GK' ? 0 : 1));
+    final pool = [...s.xi];
+    final slots = <String>[];
+    final xi = <SimPlayer>[];
+    for (final sl in order) {
+      if (pool.isEmpty) break;
+      pool.sort((a, b) => ratingAt(b, sl).compareTo(ratingAt(a, sl)));
+      slots.add(sl);
+      xi.add(pool.removeAt(0));
+    }
+    s.xi
+      ..clear()
+      ..addAll(xi);
+    s.slots
+      ..clear()
+      ..addAll(slots);
+    s.tactics.formation = f;
+    for (var j = 0; j < xi.length; j++) {
+      _line[xi[j].id] = lineOf(slots[j]);
+    }
+    invalidate();
   }
 
   void setStyle(int i, {int? mentality, int? verticality}) {
