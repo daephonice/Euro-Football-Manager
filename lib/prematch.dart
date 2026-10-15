@@ -1,4 +1,4 @@
-import 'package:drift/drift.dart' show OrderingTerm, innerJoin;
+import 'package:drift/drift.dart' show OrderingTerm, innerJoin, BooleanExpressionOperators;
 import 'package:flutter/material.dart';
 import 'brand.dart';
 import 'db/career.dart';
