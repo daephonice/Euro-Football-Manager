@@ -8,6 +8,8 @@ const volt = Color(0xFFC6FF3D);
 const voltDeep = Color(0xFF4F7A00);
 const mist = Color(0xFF8C97B5);
 const bone = Color(0xFFF2F5FF);
+const sky = Color(0xFF5BC0FF);
+const amber = Color(0xFFFFD60A);
 const alert = Color(0xFFFF5C72);
 
 const kCond = 'sans-serif-condensed';
@@ -70,6 +72,15 @@ const svgs = <String, String>{
   'moon': '$_h<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>',
   'more': '$_h<circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>',
   'info': '$_h<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg>',
+  'ball': '$_h<circle cx="12" cy="12" r="9"/><path d="M12 8l3.5 2.5-1.3 4h-4.4l-1.3-4z"/><path d="M12 8V3M15.5 10.5l5-1.5M14.2 14.5l3 4M9.8 14.5l-3 4M8.5 10.5L3.5 9"/></svg>',
+  'card': '$_h<rect x="7" y="4" width="10" height="16" rx="1.5"/></svg>',
+  'cross': '$_h<path d="M12 5v14M5 12h14"/></svg>',
+  'bars': '$_h<path d="M5 20V10M12 20V4M19 20v-7"/></svg>',
+  'trend': '$_h<path d="M3 17l6-6 4 4 8-9M15 6h6v6"/></svg>',
+  'board': '$_h<rect x="3" y="5" width="18" height="14"/><path d="M12 5v14"/><circle cx="12" cy="12" r="3"/></svg>',
+  'list': '$_h<path d="M9 6h12M9 12h12M9 18h12M3.5 6h.5M3.5 12h.5M3.5 18h.5"/></svg>',
+  'fast': '$_h<path d="M4 5l8 7-8 7zM12 5l8 7-8 7z"/></svg>',
+  'pause': '$_h<path d="M8 5v14M16 5v14"/></svg>',
   'pitch': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 600" fill="none" stroke="#000" stroke-width="2"><rect x="20" y="20" width="360" height="560"/><path d="M20 300h360"/><circle cx="200" cy="300" r="64"/><circle cx="200" cy="300" r="3"/><rect x="100" y="20" width="200" height="90"/><rect x="150" y="20" width="100" height="36"/><rect x="100" y="490" width="200" height="90"/><rect x="150" y="544" width="100" height="36"/><path d="M140 110a64 64 0 0 0 120 0M140 490a64 64 0 0 1 120 0"/></svg>',
   'emblem': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"><path d="M32 4l24 8v18c0 14-10 24-24 30C18 54 8 44 8 30V12z"/><circle cx="32" cy="30" r="12"/><path d="M32 22l7 5-3 8h-8l-3-8z"/><path d="M32 18v4M39 27l5-2M36 35l3 5M28 35l-3 5M25 27l-5-2"/></svg>',
 };
@@ -195,4 +206,31 @@ class Pips extends StatelessWidget {
                   border: Border.all(color: i <= n ? volt : inkLine),
                   borderRadius: BorderRadius.circular(1))),
       ]);
+}
+
+String monogram(String n) {
+  final w = n.split(RegExp(r'\s+')).where((x) => x.length > 2).toList();
+  final b = (w.isEmpty ? n : w.first).replaceAll(RegExp(r'[^A-Za-z]'), '');
+  return (b.length > 3 ? b.substring(0, 3) : b).toUpperCase();
+}
+
+String ordinal(int n) {
+  final m = n % 100;
+  if (m >= 11 && m <= 13) return '${n}th';
+  return '$n${switch (n % 10) { 1 => 'st', 2 => 'nd', 3 => 'rd', _ => 'th' }}';
+}
+
+class Crest extends StatelessWidget {
+  final String name;
+  final Color color;
+  final double size;
+  const Crest(this.name, {this.color = volt, this.size = 46, super.key});
+  @override
+  Widget build(BuildContext context) => Container(
+        width: size,
+        height: size,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: color, width: 1.8)),
+        child: Text(monogram(name), style: hStyle(size * 0.3, color).copyWith(letterSpacing: 0.5)),
+      );
 }

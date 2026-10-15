@@ -10,7 +10,7 @@ import 'engine/fixtures.dart';
 import 'facilities.dart';
 import 'finances.dart';
 import 'honours.dart';
-import 'match_screen.dart';
+import 'prematch.dart';
 import 'menu.dart';
 import 'settings.dart';
 import 'slots.dart';
@@ -69,7 +69,7 @@ class _HubState extends State<HubScreen> {
       }
       if (lm != null && mounted) {
         await Navigator.of(context)
-            .push(MaterialPageRoute(builder: (_) => MatchScreen(widget.db, lm!)));
+            .push(MaterialPageRoute(builder: (_) => PreMatchScreen(widget.db, lm!)));
       }
     } catch (e) {
       _err(e);
