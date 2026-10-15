@@ -1,5 +1,5 @@
 name: euro_manager
-description: Offline European football manager
+description: Euro Football Manager - offline European football manager
 publish_to: none
 version: 1.0.0+1
 environment:
@@ -9,6 +9,8 @@ dependencies:
     sdk: flutter
   drift: ^2.18.0
   drift_flutter: ^0.2.0
+  shared_preferences: ^2.2.3
+  flutter_svg: ^2.0.10+1
 dev_dependencies:
   flutter_test:
     sdk: flutter

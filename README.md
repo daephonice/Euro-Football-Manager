@@ -1,4 +1,4 @@
-# Euro Manager
+# Euro Football Manager
 
 Offline European football manager (Flutter + Drift/SQLite). All gameplay runs on-device.
 
