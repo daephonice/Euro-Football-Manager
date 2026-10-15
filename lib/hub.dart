@@ -6,6 +6,7 @@ import 'engine/fixtures.dart';
 import 'competitions.dart';
 import 'honours.dart';
 import 'settings.dart';
+import 'slots.dart';
 import 'match_screen.dart';
 
 class HubScreen extends StatefulWidget {
@@ -16,7 +17,13 @@ class HubScreen extends StatefulWidget {
 }
 
 class _HubState extends State<HubScreen> {
-  late Future<HubData> _f = loadHub(widget.db);
+  late Future<HubData> _f = _hub();
+
+  Future<HubData> _hub() async {
+    final d = await loadHub(widget.db);
+    await Slots.sync(d);
+    return d;
+  }
   bool _busy = false;
 
   Future<void> _play() async {
@@ -39,7 +46,7 @@ class _HubState extends State<HubScreen> {
     if (!mounted) return;
     setState(() {
       _busy = false;
-      _f = loadHub(widget.db);
+      _f = _hub();
     });
   }
 
@@ -59,7 +66,7 @@ class _HubState extends State<HubScreen> {
     if (!mounted) return;
     setState(() {
       _busy = false;
-      _f = loadHub(widget.db);
+      _f = _hub();
     });
   }
 

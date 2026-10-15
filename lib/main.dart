@@ -1,65 +1,27 @@
 import 'package:flutter/material.dart';
-import 'db/career.dart';
-import 'db/competitions.dart';
-import 'db/database.dart';
-import 'db/seed.dart';
-import 'shell.dart';
+import 'brand.dart';
+import 'menu.dart';
+import 'slots.dart';
 import 'util.dart';
-import 'new_career.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final db = AppDatabase();
-  await seedIfEmpty(db);
-  await ensureCompetitions(db);
-  final saves = await db.select(db.careerSaves).get();
-  if (saves.isNotEmpty) {
-    themeNotifier.value = ThemeMode.values[saves.first.themeMode.clamp(0, 2)];
-  }
-  runApp(App(db));
+  await Slots.init();
+  runApp(const App());
 }
 
 class App extends StatelessWidget {
-  final AppDatabase db;
-  const App(this.db, {super.key});
+  const App({super.key});
 
   @override
   Widget build(BuildContext context) => ValueListenableBuilder<ThemeMode>(
       valueListenable: themeNotifier,
       builder: (_, mode, __) => MaterialApp(
-        title: 'Euro Manager',
-        theme: ThemeData(colorSchemeSeed: Colors.green, useMaterial3: true),
-        darkTheme: ThemeData(
-            colorSchemeSeed: Colors.green,
-            brightness: Brightness.dark,
-            useMaterial3: true),
-        themeMode: mode,
-        home: Root(db),
-      ));
-}
-
-class Root extends StatefulWidget {
-  final AppDatabase db;
-  const Root(this.db, {super.key});
-  @override
-  State<Root> createState() => _RootState();
-}
-
-class _RootState extends State<Root> {
-  late Future<CareerSave> _career = loadCareer(widget.db);
-
-  @override
-  Widget build(BuildContext context) => FutureBuilder<CareerSave>(
-        future: _career,
-        builder: (_, s) {
-          if (s.hasError) return Scaffold(body: Center(child: Text('${s.error}')));
-          if (!s.hasData) {
-            return const Scaffold(body: Center(child: CircularProgressIndicator()));
-          }
-          return s.data!.clubId == null
-              ? NewCareerScreen(widget.db,
-                  onStarted: () => setState(() => _career = loadCareer(widget.db)))
-              : Shell(widget.db);
-        },
-      );
+            title: 'Euro Football Manager',
+            debugShowCheckedModeBanner: false,
+            theme: brandTheme(Brightness.light),
+            darkTheme: brandTheme(Brightness.dark),
+            themeMode: mode,
+            home: const MenuScreen(),
+          ));
 }

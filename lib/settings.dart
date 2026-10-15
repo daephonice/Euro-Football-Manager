@@ -1,20 +1,14 @@
-import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
-import 'db/career.dart';
 import 'db/database.dart';
 import 'honours.dart';
+import 'slots.dart';
 import 'util.dart';
 
 class SettingsScreen extends StatelessWidget {
   final AppDatabase db;
   const SettingsScreen(this.db, {super.key});
 
-  Future<void> _theme(ThemeMode m) async {
-    themeNotifier.value = m;
-    final s = await loadCareer(db);
-    await (db.update(db.careerSaves)..where((t) => t.id.equals(s.id)))
-        .write(CareerSavesCompanion(themeMode: Value(m.index)));
-  }
+  Future<void> _theme(ThemeMode m) => Slots.setTheme(m);
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -41,6 +35,12 @@ class SettingsScreen extends StatelessWidget {
             title: const Text('Honours & awards'),
             onTap: () => Navigator.of(context)
                 .push(MaterialPageRoute(builder: (_) => HonoursScreen(db))),
+          ),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.logout),
+            title: const Text('Save and exit to main menu'),
+            onTap: () => Navigator.of(context).popUntil((r) => r.isFirst),
           ),
         ]),
       );
