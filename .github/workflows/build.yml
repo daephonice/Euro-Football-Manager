@@ -25,7 +25,7 @@ jobs:
         run: mkdir -p ~/.android && echo "$KS" | base64 -d > ~/.android/debug.keystore
       - run: flutter create --platforms=android --project-name euro_manager --org com.gad .
       - name: App name
-        run: sed -i 's/android:label="[^"]*"/android:label="Euro Manager"/' android/app/src/main/AndroidManifest.xml
+        run: sed -i 's/android:label="[^"]*"/android:label="Euro Football Manager"/' android/app/src/main/AndroidManifest.xml
       - run: flutter pub get
       - run: dart run build_runner build --delete-conflicting-outputs
       - run: flutter build apk --release --target-platform android-arm64 --build-number=${{ github.run_number }} --split-debug-info=build/symbols --obfuscate
@@ -37,5 +37,5 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: build-${{ github.run_number }}
-          name: Euro Manager build ${{ github.run_number }}
+          name: Euro Football Manager build ${{ github.run_number }}
           files: build/app/outputs/flutter-apk/app-release.apk
