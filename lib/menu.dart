@@ -3,7 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'brand.dart';
 import 'db/database.dart';
 import 'new_game.dart';
-import 'shell.dart';
+import 'hub.dart';
 import 'slots.dart';
 
 const kVersion = '1.0.0';
@@ -304,5 +304,5 @@ class _GameHostState extends State<GameHost> {
   }
 
   @override
-  Widget build(BuildContext context) => Shell(widget.db);
+  Widget build(BuildContext context) => HubScreen(widget.db);
 }
